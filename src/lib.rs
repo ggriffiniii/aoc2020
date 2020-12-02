@@ -1,75 +1,84 @@
-use aoc_runner_derive::{aoc_lib, aoc};
+use aoc_runner_derive::{aoc, aoc_generator, aoc_lib};
 
-#[aoc(day1, part1)]
-pub fn solve_d1_p1(input: &str) -> u64 {
+#[aoc_generator(day1)]
+pub fn d1_input(input: &str) -> Vec<u64> {
     let mut entries: Vec<u64> = input.split('\n').map(|x| x.parse().unwrap()).collect();
     entries.sort();
-    for entry in &entries {
+    entries
+}
+
+#[aoc(day1, part1)]
+pub fn solve_d1_p1(input: &[u64]) -> u64 {
+    for entry in input {
         let needed = 2020 - entry;
-        if let Ok(idx) = entries.binary_search(&needed) {
-            return entry * entries[idx];
+        if let Ok(idx) = input.binary_search(&needed) {
+            return entry * input[idx];
         }
     }
     panic!("not found");
 }
 
 #[aoc(day1, part2)]
-pub fn solve_d1_p2(input: &str) -> Option<u64> {
-    let mut entries: Vec<u64> = input.split('\n').map(|x| x.parse().unwrap()).collect();
-    entries.sort();
-    for i in 0 .. entries.len()-2 {
-        let entry1 = entries[i];
-        for j in i+1 .. entries.len()-1 {
-            let entry2 = entries[j];
+pub fn solve_d1_p2(input: &[u64]) -> Option<u64> {
+    for i in 0..input.len() - 2 {
+        let entry1 = input[i];
+        for j in i + 1..input.len() - 1 {
+            let entry2 = input[j];
             if entry1 + entry2 > 2020 {
                 break;
             }
-            for k in j+1 .. entries.len() {
-                let entry3 = entries[k];
+            for k in j + 1..input.len() {
+                let entry3 = input[k];
                 if entry1 + entry2 + entry3 == 2020 {
-                    return Some(entry1 * entry2 * entry3)
+                    return Some(entry1 * entry2 * entry3);
                 }
             }
         }
     }
-    return None
+    return None;
+}
+
+struct PasswdEntry<'a> {
+    lower_bound: usize,
+    upper_bound: usize,
+    policy_char: u8,
+    passwd: &'a [u8],
+}
+
+impl<'a> PasswdEntry<'a> {
+    fn new(mut input: &'a str) -> Option<Self> {
+        let lb_idx = input.find('-')?;
+        let lower_bound: usize = (&input[..lb_idx]).parse().ok()?;
+        input = &input[lb_idx + 1..];
+
+        let ub_idx = input.find(' ')?;
+        let upper_bound: usize = (&input[..ub_idx]).parse().ok()?;
+        input = &input[ub_idx + 1..];
+
+        let policy_char = input.as_bytes()[0];
+        let passwd = &input[3..].as_bytes();
+        Some(PasswdEntry { lower_bound, upper_bound, policy_char, passwd })
+    }
 }
 
 #[aoc(day2, part1)]
 pub fn solve_d2_p1(input: &str) -> usize {
-    fn line_is_valid(mut line: &str) -> bool {
-        let lb_idx = line.find('-').unwrap();
-        let lb: usize = (&line[..lb_idx]).parse().unwrap();
-        line = &line[lb_idx+1..];
-
-        let ub_idx = line.find(' ').unwrap();
-        let ub: usize = (&line[..ub_idx]).parse().unwrap();
-        line = &line[ub_idx+1..];
-
-        let letter = line.as_bytes()[0];
-        let passwd = &line[3..];
-        let count = passwd.bytes().filter(|&b| b == letter).count();
-        count >= lb && count <= ub
+    fn line_is_valid(line: &str) -> bool {
+        let entry = PasswdEntry::new(line).unwrap();
+        let count = entry.passwd.iter().filter(|&&b| b == entry.policy_char).count();
+        (count >= entry.lower_bound) && (count <= entry.upper_bound)
     }
     input.split('\n').filter(|x| line_is_valid(x)).count()
 }
 
 #[aoc(day2, part2)]
 pub fn solve_d2_p2(input: &str) -> usize {
-    fn line_is_valid(mut line: &str) -> bool {
-        let lb_idx = line.find('-').unwrap();
-        let lb: usize = (&line[..lb_idx]).parse().unwrap();
-        line = &line[lb_idx+1..];
-
-        let ub_idx = line.find(' ').unwrap();
-        let ub: usize = (&line[..ub_idx]).parse().unwrap();
-        line = &line[ub_idx+1..];
-
-        let letter = line.as_bytes()[0];
-        let passwd = &line[3..].as_bytes();
-        (passwd[lb-1] == letter) ^ (passwd[ub-1] == letter)
+    fn line_is_valid(line: &str) -> bool {
+        let entry = PasswdEntry::new(line).unwrap();
+        (entry.passwd[entry.lower_bound - 1] == entry.policy_char)
+            ^ (entry.passwd[entry.upper_bound - 1] == entry.policy_char)
     }
     input.split('\n').filter(|x| line_is_valid(x)).count()
 }
 
-aoc_lib!{ year = 2020 }
+aoc_lib! { year = 2020 }
