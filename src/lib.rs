@@ -1,3 +1,5 @@
+use std::convert::TryFrom;
+
 use aoc_runner_derive::{aoc, aoc_generator, aoc_lib};
 
 #[aoc_generator(day1)]
@@ -46,7 +48,7 @@ struct PasswdEntry<'a> {
 }
 
 impl<'a> PasswdEntry<'a> {
-    fn new(mut input: &'a str) -> Option<Self> {
+    fn parse(mut input: &'a str) -> Option<Self> {
         let lb_idx = input.find('-')?;
         let lower_bound: usize = (&input[..lb_idx]).parse().ok()?;
         input = &input[lb_idx + 1..];
@@ -64,7 +66,7 @@ impl<'a> PasswdEntry<'a> {
 #[aoc(day2, part1)]
 pub fn solve_d2_p1(input: &str) -> usize {
     fn line_is_valid(line: &str) -> bool {
-        let entry = PasswdEntry::new(line).unwrap();
+        let entry = PasswdEntry::parse(line).unwrap();
         let count = entry.passwd.iter().filter(|&&b| b == entry.policy_char).count();
         (count >= entry.lower_bound) && (count <= entry.upper_bound)
     }
@@ -74,11 +76,89 @@ pub fn solve_d2_p1(input: &str) -> usize {
 #[aoc(day2, part2)]
 pub fn solve_d2_p2(input: &str) -> usize {
     fn line_is_valid(line: &str) -> bool {
-        let entry = PasswdEntry::new(line).unwrap();
+        let entry = PasswdEntry::parse(line).unwrap();
         (entry.passwd[entry.lower_bound - 1] == entry.policy_char)
             ^ (entry.passwd[entry.upper_bound - 1] == entry.policy_char)
     }
     input.split('\n').filter(|x| line_is_valid(x)).count()
+}
+
+#[derive(Debug)]
+pub enum MapSquare {
+    Open,
+    Tree,
+}
+
+impl TryFrom<u8> for MapSquare {
+    type Error = u8;
+    fn try_from(b: u8) -> Result<MapSquare, u8> {
+        Ok(match b {
+            b'.' => MapSquare::Open,
+            b'#' => MapSquare::Tree,
+            unknown => return Err(unknown),
+        })
+    }
+}
+
+#[aoc_generator(day3)]
+pub fn d3_input(input: &[u8]) -> Vec<Vec<MapSquare>> {
+    input
+        .split(|&b| b == b'\n')
+        .map(|line| line.iter().copied().map(|b| MapSquare::try_from(b).unwrap()).collect())
+        .collect()
+}
+
+#[aoc(day3, part1)]
+pub fn solve_d3_p1(input: &[Vec<MapSquare>]) -> usize {
+    input
+        .iter()
+        .skip(1)
+        .enumerate()
+        .map(|(steps_taken, grid_line)| {
+            let x_coord = (steps_taken + 1) * 3;
+            match grid_line.iter().cycle().nth(x_coord).unwrap() {
+                MapSquare::Open => 0,
+                MapSquare::Tree => 1,
+            }
+        })
+        .sum()
+}
+
+#[aoc(day3, part2)]
+pub fn solve_d3_p2(input: &[Vec<MapSquare>]) -> usize {
+    #[derive(Debug, Clone, Copy)]
+    struct Step {
+        x_step: usize,
+        y_step: usize,
+    }
+
+    let steps = [
+        Step { x_step: 1, y_step: 1 },
+        Step { x_step: 3, y_step: 1 },
+        Step { x_step: 5, y_step: 1 },
+        Step { x_step: 7, y_step: 1 },
+        Step { x_step: 1, y_step: 2 },
+    ];
+
+    steps
+        .iter()
+        .copied()
+        .map(|Step { x_step, y_step }| -> usize {
+            input
+                .iter()
+                .skip(y_step)
+                .step_by(y_step)
+                .enumerate()
+                .map(|(num_steps_taken, grid_line)| {
+                    let x_coord = (num_steps_taken + 1) * x_step;
+                    match grid_line.iter().cycle().nth(x_coord).unwrap() {
+                        MapSquare::Open => 0,
+                        MapSquare::Tree => 1,
+                    }
+                })
+                .sum()
+        })
+        .product()
 }
 
 aoc_lib! { year = 2020 }
