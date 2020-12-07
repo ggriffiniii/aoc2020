@@ -36,14 +36,6 @@ impl SeatId {
         }
         Some(SeatId(seatid))
     }
-
-    fn row(&self) -> u8 {
-        (self.0 >> 3) as u8
-    }
-
-    fn column(&self) -> u8 {
-        (self.0 & 0b111) as u8
-    }
 }
 
 #[aoc(day5, part1)]

@@ -1,4 +1,4 @@
-use std::{iter::FromIterator, ops::BitAnd};
+use std::iter::FromIterator;
 
 use aoc_runner_derive::aoc;
 
