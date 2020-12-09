@@ -59,12 +59,7 @@ fn run_program(
     (pc, accum)
 }
 
-fn step(
-    instr: Instr,
-    prev_instrs: &mut BitSet,
-    mut pc: usize,
-    mut accum: isize,
-) -> (usize, isize) {
+fn step(instr: Instr, prev_instrs: &mut BitSet, mut pc: usize, mut accum: isize) -> (usize, isize) {
     prev_instrs.insert(pc);
     pc = match instr {
         Instr::Nop(_) => pc + 1,
