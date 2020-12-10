@@ -1,6 +1,6 @@
 use aoc_runner_derive::aoc;
 
-#[derive(Debug,Copy,Clone,PartialEq,Eq,PartialOrd,Ord)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct Jolts(usize);
 impl std::ops::Add for Jolts {
     type Output = Jolts;
@@ -56,17 +56,23 @@ pub fn solve_d10_p2(input: &str) -> usize {
     // To calculate the number of combinations the current adapter has you first
     // determine which are the potential upstream adapters and then sum their
     // combinations.
-    let mut combinations_count = Vec::with_capacity(jolts.len());
-    combinations_count.push(1);
-    for (idx, current_jolts) in jolts.iter().copied().enumerate().skip(1) {
-        let mut adapter_paths_to_zero = 0;
 
-        for upstream_idx in idx.saturating_sub(3) .. idx {
+    let mut combinations_count = Vec::with_capacity(jolts.len());
+    // The first entry in jolts is the `0` jolts. Initialize it with 1 to
+    // indicate that it is the only way to reach the end of the chain.
+    combinations_count.push(1);
+
+    // Skip the first entry in jolts since it's already initialized in
+    // combinations_count.
+    for (idx, current_jolts) in jolts.iter().copied().enumerate().skip(1) {
+        let mut current_combinations = 0;
+
+        for upstream_idx in idx.saturating_sub(3)..idx {
             if current_jolts - jolts[upstream_idx] <= Jolts(3) {
-                adapter_paths_to_zero += combinations_count[upstream_idx];
+                current_combinations += combinations_count[upstream_idx];
             }
         }
-        combinations_count.push(adapter_paths_to_zero);
+        combinations_count.push(current_combinations);
     }
     *combinations_count.last().unwrap()
 }
