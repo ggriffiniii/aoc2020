@@ -44,9 +44,11 @@ impl Preamble {
     fn find_sum_pair(&self, total: usize) -> Option<(usize, usize)> {
         for idx in 0..25 {
             let entry = self.entries[(self.entries_start_idx + idx) % 25];
-            let needed = total - entry;
-            if self.set.contains(&needed) {
-                return Some((entry, needed));
+            if entry <= total {
+                let needed = total - entry;
+                if self.set.contains(&needed) {
+                    return Some((entry, needed));
+                }
             }
         }
         None
