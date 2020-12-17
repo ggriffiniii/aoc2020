@@ -92,7 +92,7 @@ impl Mask2 {
         let mut or_mask = 0;
         for (idx, b) in mask.iter().enumerate() {
             match b {
-                b'0' => {},
+                b'0' => {}
                 b'1' => {
                     or_mask |= 1 << 35 - idx;
                 }
@@ -107,7 +107,7 @@ impl Mask2 {
 
     fn set_memory(&self, mem: &mut HashMap<u64, u64>, address: u64, value: u64) {
         let offset = address | self.or_mask;
-        for mut floating_value in 0 .. 2 << self.floating.count_ones() {
+        for mut floating_value in 0..2 << self.floating.count_ones() {
             let mut addr = offset;
             for bit in BitIndexes::new(self.floating) {
                 addr = set_bit(addr, bit, (floating_value & 1) == 1);
@@ -126,13 +126,16 @@ fn set_bit(value: u64, bit_idx: u64, enabled: bool) -> u64 {
     }
 }
 
-struct BitIndexes{
+struct BitIndexes {
     value: u64,
     current_idx: u64,
 }
 impl BitIndexes {
     fn new(value: u64) -> Self {
-        BitIndexes{value, current_idx: 0}
+        BitIndexes {
+            value,
+            current_idx: 0,
+        }
     }
 }
 

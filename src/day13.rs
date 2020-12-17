@@ -23,18 +23,11 @@ fn solve_d13_p1(input: &str) -> usize {
             },
             |min, bus_id| {
                 let offset = t % bus_id;
-                let wait_time = if offset == 0 {
-                    0
-                } else {
-                    bus_id - offset
-                };
+                let wait_time = if offset == 0 { 0 } else { bus_id - offset };
                 if min.wait_time < wait_time {
                     min
                 } else {
-                    WaitTime{
-                        bus_id,
-                        wait_time,
-                    }
+                    WaitTime { bus_id, wait_time }
                 }
             },
         );
