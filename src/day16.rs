@@ -258,7 +258,7 @@ mod avx2 {
         let mut candidates = [_mm256_set1_epi32((1i32 << rules.len()) - 1); 4];
         let mut scratch_space = [_mm256_set1_epi32(1); 4];
         for line in nearby_tickets.split('\n') {
-            let scratch_slice = &mut * (&mut scratch_space as *mut _ as *mut [u32; 32]);
+            let scratch_slice = &mut *(&mut scratch_space as *mut _ as *mut [u32; 32]);
             for (field, scratch) in line.split(',').zip(scratch_slice.iter_mut()) {
                 let field = field.parse().unwrap();
                 *scratch = rule_eval.eval(field);
@@ -275,7 +275,7 @@ mod avx2 {
             }
         }
 
-        let candidates = &mut * (&mut candidates as *mut _ as *mut [u32; 32]);
+        let candidates = &mut *(&mut candidates as *mut _ as *mut [u32; 32]);
         let candidates = &mut candidates[..rules.len()];
         while candidates.iter().copied().any(|x| x.count_ones() > 1) {
             for idx in 0..candidates.len() {
