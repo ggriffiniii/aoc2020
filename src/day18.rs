@@ -20,20 +20,29 @@ fn num_or_paren_expr(i: &str) -> IResult<&str, usize> {
     alt((num, paren_expr))(i)
 }
 
-fn expr(i: &str) -> IResult<&str, usize> {
+fn add_or_sub(i: &str) -> IResult<&str, usize> {
     let (i, lhs) = num_or_paren_expr(i)?;
 
     fold_many0(
-        pair(
-            alt((char('+'), char('-'), char('*'), char('/'))),
-            num_or_paren_expr,
-        ),
+        pair(alt((char('+'), char('-'))), num_or_paren_expr),
         lhs,
         |lhs, (op, rhs)| match op {
             '+' => lhs + rhs,
             '-' => lhs - rhs,
+            _ => unreachable!("invalid op"),
+        },
+    )(i)
+}
+
+fn expr(i: &str) -> IResult<&str, usize> {
+    let (i, lhs) = add_or_sub(i)?;
+
+    fold_many0(
+        pair(alt((char('*'), char('/'))), add_or_sub),
+        lhs,
+        |lhs, (op, rhs)| match op {
             '*' => lhs * rhs,
-            '/' => lhs * rhs,
+            '/' => lhs / rhs,
             _ => unreachable!("invalid op"),
         },
     )(i)
@@ -44,6 +53,11 @@ fn solve_d18_p1(input: &str) -> usize {
     input.split('\n').map(|line| expr(line).unwrap().1).sum()
 }
 
+#[aoc(day18, part2)]
+fn solve_d18_p2(input: &str) -> usize {
+    input.split('\n').map(|line| expr(line).unwrap().1).sum()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -51,17 +65,17 @@ mod tests {
     #[test]
     fn test_expr() {
         assert_eq!(expr("2+2"), Ok(("", 4)));
-        assert_eq!(expr("1 + 2 * 3 + 4 * 5 + 6"), Ok(("", 71)));
+        assert_eq!(expr("1 + 2 * 3 + 4 * 5 + 6"), Ok(("", 231)));
         assert_eq!(expr("1 + (2 * 3) + (4 * (5 + 6))"), Ok(("", 51)));
-        assert_eq!(expr("2 * 3 + (4 * 5)"), Ok(("", 26)));
-        assert_eq!(expr("5 + (8 * 3 + 9 + 3 * 4 * 3)"), Ok(("", 437)));
+        assert_eq!(expr("2 * 3 + (4 * 5)"), Ok(("", 46)));
+        assert_eq!(expr("5 + (8 * 3 + 9 + 3 * 4 * 3)"), Ok(("", 1445)));
         assert_eq!(
             expr("5 * 9 * (7 * 3 * 3 + 9 * 3 + (8 + 6 * 4))"),
-            Ok(("", 12240))
+            Ok(("", 669060))
         );
         assert_eq!(
             expr("((2 + 4 * 9) * (6 + 9 * 8 + 6) + 6) + 2 + 4 * 2"),
-            Ok(("", 13632))
+            Ok(("", 23340))
         );
     }
 }
