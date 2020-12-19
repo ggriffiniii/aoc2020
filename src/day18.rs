@@ -12,20 +12,18 @@ fn num(i: &str) -> IResult<&str, usize> {
     map_res(delimited(space0, digit1, space0), FromStr::from_str)(i)
 }
 
-fn paren_expr(i: &str) -> IResult<&str, usize> {
+fn paren(i: &str) -> IResult<&str, usize> {
     delimited(space0, delimited(tag("("), expr, tag(")")), space0)(i)
 }
 
-fn num_or_paren_expr(i: &str) -> IResult<&str, usize> {
-    alt((num, paren_expr))(i)
+fn num_or_paren(i: &str) -> IResult<&str, usize> {
+    alt((num, paren))(i)
 }
 
 fn add_or_paren(i: &str) -> IResult<&str, usize> {
-    let (i, lhs) = num_or_paren_expr(i)?;
+    let (i, lhs) = num_or_paren(i)?;
 
-    fold_many0(preceded(char('+'), num_or_paren_expr), lhs, |lhs, rhs| {
-        lhs + rhs
-    })(i)
+    fold_many0(preceded(char('+'), num_or_paren), lhs, |lhs, rhs| lhs + rhs)(i)
 }
 
 fn expr(i: &str) -> IResult<&str, usize> {
