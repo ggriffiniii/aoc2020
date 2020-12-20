@@ -1,10 +1,6 @@
 use aoc_runner_derive::aoc;
 use std::ops::RangeInclusive;
-
-fn split_once<'a>(input: &'a str, delimeter: &str) -> Option<(&'a str, &'a str)> {
-    let idx = input.find(delimeter)?;
-    Some((&input[..idx], &input[idx + delimeter.len()..]))
-}
+use crate::split_once;
 
 struct Rule<'a> {
     name: &'a str,
