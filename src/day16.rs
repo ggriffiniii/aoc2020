@@ -1,6 +1,6 @@
+use crate::split_once;
 use aoc_runner_derive::aoc;
 use std::ops::RangeInclusive;
-use crate::split_once;
 
 struct Rule<'a> {
     name: &'a str,
