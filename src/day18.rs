@@ -21,6 +21,7 @@ fn solve_d18_p1(input: &str) -> usize {
         Mul,
     }
 
+    // The next token is an operator '+' or '*'
     fn operator(i: &str) -> Option<(&str, Operator)> {
         let i = i.trim_start();
         let op = match i.as_bytes()[0] {
@@ -31,6 +32,7 @@ fn solve_d18_p1(input: &str) -> usize {
         Some((&i[1..], op))
     }
 
+    // The next token is '('. Evaluate the entire expression within the parens.
     fn paren(i: &str) -> Option<(&str, usize)> {
         let i = i.trim_start();
         if i.is_empty() || i.as_bytes()[0] != b'(' {
@@ -44,16 +46,23 @@ fn solve_d18_p1(input: &str) -> usize {
         Some((rem, n))
     }
 
+    // the next token is either a bare number or an expression within a paren,
+    // return either the number of the evaluation of the paren enclosed
+    // expression.
     fn num_or_paren(i: &str) -> Option<(&str, usize)> {
         num(i).or_else(|| paren(i))
     }
 
+    // the next token is an operator ('+' or '*') followed by a number or an
+    // expression within a paren.
     fn operator_and_rhs(i: &str) -> Option<(&str, (Operator, usize))> {
         let (i, op) = operator(i)?;
         let (i, rhs) = num_or_paren(i)?;
         Some((i, (op, rhs)))
     }
 
+    // evaluate the expression provided as input. Return the remaining input
+    // after evaluation is complete.
     fn expr(i: &str) -> Option<(&str, usize)> {
         let (mut rem, mut lhs) = num_or_paren(i)?;
 
@@ -80,6 +89,7 @@ fn solve_d18_p1(input: &str) -> usize {
 
 #[aoc(day18, part2)]
 fn solve_d18_p2(input: &str) -> usize {
+    // The next token is '('. Evaluate the entire expression within the parens.
     fn paren(i: &str) -> Option<(&str, usize)> {
         let i = i.trim_start();
         if i.is_empty() || i.as_bytes()[0] != b'(' {
@@ -93,10 +103,16 @@ fn solve_d18_p2(input: &str) -> usize {
         Some((rem, n))
     }
 
+    // the next token is either a bare number or an expression within a paren,
+    // return either the number of the evaluation of the paren enclosed
+    // expression.
     fn num_or_paren(i: &str) -> Option<(&str, usize)> {
         num(i).or_else(|| paren(i))
     }
 
+    // The next token is a number or an expression within a paren, optionally
+    // followed by some number of '+' and number or paren enclosed expressions.
+    // The returned value is the sum of the entire sequence.
     fn add_or_paren(i: &str) -> Option<(&str, usize)> {
         let (mut i, mut lhs) = num_or_paren(i)?;
 
@@ -116,15 +132,24 @@ fn solve_d18_p2(input: &str) -> usize {
         Some((i, lhs))
     }
 
+    // Evaluate the expression.
     fn expr(i: &str) -> Option<(&str, usize)> {
+        // add_or_paren will evaluate any consecutive elements of the expression
+        // that are separated by '+'. This enforces that '+' has a higher order
+        // of operation than '*'.
         let (mut i, mut lhs) = add_or_paren(i)?;
 
         loop {
+            // The next token is expected to be '*'. Remember that all '+'
+            // operations will have already been handled by add_or_paren above.
             i = i.trim_start();
             if i.is_empty() || i.as_bytes()[0] != b'*' {
                 break;
             }
             i = &i[1..];
+            // '*' has been seen, now get the rhs of the multiplication. Using
+            // add_or_paren here again will first sum all consecutive
+            // '+' tokens prior to doing the multiplication.
             if let Some((rem, rhs)) = add_or_paren(i) {
                 lhs *= rhs;
                 i = rem;
