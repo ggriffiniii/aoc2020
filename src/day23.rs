@@ -19,9 +19,9 @@ struct Cups {
 }
 
 impl Cups {
-    fn parse(input: &[u8]) -> Option<Self> {
-        let mut cups = vec![Cup(0); input.len()];
-        let input_iter = input.iter().map(|x| x - b'0');
+    fn parse(input: &[u8], total_len: usize) -> Option<Self> {
+        let mut cups = vec![Cup(0); total_len];
+        let input_iter = input.iter().map(|x| (x - b'0') as u32).chain(input.len() as u32 + 1 ..= total_len as u32);
         for (curr, next) in input_iter.clone().zip(input_iter.cycle().skip(1)) {
             cups[curr as usize - 1] = Cup(next as u32);
         }
@@ -37,8 +37,9 @@ impl Cups {
         let taken_2 = self.next_cup(taken_1);
         let taken_3 = self.next_cup(taken_2);
 
-        let mut dest_cup = Cup::from_idx((self.current.as_idx() + self.cups.len() - 1) % self.cups.len());
-            Cup(((self.current.0 as usize - 1 + self.cups.len() - 1) % self.cups.len()) as u32 + 1);
+        let mut dest_cup =
+            Cup::from_idx((self.current.as_idx() + self.cups.len() - 1) % self.cups.len());
+        Cup(((self.current.0 as usize - 1 + self.cups.len() - 1) % self.cups.len()) as u32 + 1);
         while dest_cup == taken_1 || dest_cup == taken_2 || dest_cup == taken_3 {
             dest_cup = Cup::from_idx((dest_cup.as_idx() + self.cups.len() - 1) % self.cups.len());
         }
@@ -61,7 +62,7 @@ impl Cups {
 
 #[aoc(day23, part1)]
 fn solve_d23_p1(input: &[u8]) -> usize {
-    let mut cups = Cups::parse(input).unwrap();
+    let mut cups = Cups::parse(input, input.len()).unwrap();
     for _ in 0..100 {
         cups.do_move();
     }
@@ -69,4 +70,17 @@ fn solve_d23_p1(input: &[u8]) -> usize {
         .skip(1)
         .take_while(|&cup| cup != Cup(1))
         .fold(0, |accum, cup| accum * 10 + cup.0 as usize)
+}
+
+#[aoc(day23, part2)]
+fn solve_d23_p2(input: &[u8]) -> usize {
+    let mut cups = Cups::parse(input, 1_000_000).unwrap();
+    for _ in 0..10_000_000 {
+        cups.do_move();
+    }
+    cups.iter(Cup(1))
+        .skip(1)
+        .take(2)
+        .map(|x| x.0 as usize)
+        .product()
 }
