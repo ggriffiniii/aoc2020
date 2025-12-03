@@ -7,11 +7,11 @@ impl Pos {
     fn step(self, dir: Direction) -> Self {
         match dir {
             Direction::E => Pos(self.0 + 2, self.1),
-            Direction::SE => Pos(self.0 + 1, self.1 -1),
-            Direction::SW => Pos(self.0 -1, self.1 -1),
-            Direction::W => Pos(self.0 -2, self.1),
+            Direction::SE => Pos(self.0 + 1, self.1 - 1),
+            Direction::SW => Pos(self.0 - 1, self.1 - 1),
+            Direction::W => Pos(self.0 - 2, self.1),
             Direction::NE => Pos(self.0 + 1, self.1 + 1),
-            Direction::NW => Pos(self.0 -1, self.1 + 1),
+            Direction::NW => Pos(self.0 - 1, self.1 + 1),
         }
     }
 }
@@ -74,11 +74,10 @@ impl Tile {
 #[aoc(day24, part1)]
 fn solve_d24_p1(input: &str) -> usize {
     let mut tiles: HashMap<_, usize> = HashMap::new();
-    for pos in input.split('\n').map(|line| {
-        Direction::iter(line.as_bytes()).fold(Pos(0, 0), |pos, dir| {
-            pos.step(dir)
-        })
-    }) {
+    for pos in input
+        .split('\n')
+        .map(|line| Direction::iter(line.as_bytes()).fold(Pos(0, 0), |pos, dir| pos.step(dir)))
+    {
         *tiles.entry(pos).or_default() += 1;
     }
 
@@ -91,11 +90,10 @@ fn solve_d24_p1(input: &str) -> usize {
 #[aoc(day24, part2)]
 fn solve_d24_p2(input: &str) -> usize {
     let mut floor: HashMap<_, Tile> = HashMap::new();
-    for pos in input.split('\n').map(|line| {
-        Direction::iter(line.as_bytes()).fold(Pos(0, 0), |pos, dir| {
-            pos.step(dir)
-        })
-    }) {
+    for pos in input
+        .split('\n')
+        .map(|line| Direction::iter(line.as_bytes()).fold(Pos(0, 0), |pos, dir| pos.step(dir)))
+    {
         floor.entry(pos).or_insert(Tile::White).flip()
     }
 
@@ -115,11 +113,7 @@ fn solve_d24_p2(input: &str) -> usize {
     floor.values().filter(|&&tile| tile == Tile::Black).count()
 }
 
-fn run(
-    floor: &HashMap<Pos, Tile>,
-    tiles_visited: &mut HashMap<Pos, bool>,
-    pos: Pos,
-) {
+fn run(floor: &HashMap<Pos, Tile>, tiles_visited: &mut HashMap<Pos, bool>, pos: Pos) {
     if tiles_visited.contains_key(&pos) {
         return;
     }
@@ -149,11 +143,29 @@ fn run(
 
 fn neighbors(floor: &HashMap<Pos, Tile>, pos: Pos) -> [Tile; 6] {
     [
-        floor.get(&pos.step(Direction::E)).copied().unwrap_or(Tile::White),
-        floor.get(&pos.step(Direction::SE)).copied().unwrap_or(Tile::White),
-        floor.get(&pos.step(Direction::SW)).copied().unwrap_or(Tile::White),
-        floor.get(&pos.step(Direction::W)).copied().unwrap_or(Tile::White),
-        floor.get(&pos.step(Direction::NE)).copied().unwrap_or(Tile::White),
-        floor.get(&pos.step(Direction::NW)).copied().unwrap_or(Tile::White),
+        floor
+            .get(&pos.step(Direction::E))
+            .copied()
+            .unwrap_or(Tile::White),
+        floor
+            .get(&pos.step(Direction::SE))
+            .copied()
+            .unwrap_or(Tile::White),
+        floor
+            .get(&pos.step(Direction::SW))
+            .copied()
+            .unwrap_or(Tile::White),
+        floor
+            .get(&pos.step(Direction::W))
+            .copied()
+            .unwrap_or(Tile::White),
+        floor
+            .get(&pos.step(Direction::NE))
+            .copied()
+            .unwrap_or(Tile::White),
+        floor
+            .get(&pos.step(Direction::NW))
+            .copied()
+            .unwrap_or(Tile::White),
     ]
 }

@@ -21,7 +21,10 @@ struct Cups {
 impl Cups {
     fn parse(input: &[u8], total_len: usize) -> Option<Self> {
         let mut cups = vec![Cup(0); total_len];
-        let input_iter = input.iter().map(|x| (x - b'0') as u32).chain(input.len() as u32 + 1 ..= total_len as u32);
+        let input_iter = input
+            .iter()
+            .map(|x| (x - b'0') as u32)
+            .chain(input.len() as u32 + 1..=total_len as u32);
         for (curr, next) in input_iter.clone().zip(input_iter.cycle().skip(1)) {
             cups[curr as usize - 1] = Cup(next as u32);
         }
