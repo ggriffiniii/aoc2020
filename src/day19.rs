@@ -35,34 +35,38 @@ impl<'a> Parser<'a> {
     }
 
     // returns Some(remaining_input) when valid, None when doesn't match.
-    fn parse<'b>(&self, parsers: &HashMap<usize, Parser>, input: &'b str) -> Option<&'b str> {
+    fn parse<'b>(&self, parsers: &HashMap<usize, Parser>, input: &'b str) -> Vec<&'b str> {
         match self {
             &Parser::Lit(s) => {
                 if input.is_empty() || &input[..s.len()] != s {
-                    None
+                    Vec::new()
                 } else {
-                    Some(&input[s.len()..])
+                    vec![&input[s.len()..]]
                 }
             }
             Parser::Seq(a) => {
-                let mut input = input;
-                let mut iter = a.iter().copied();
-                while let Some(parser_idx) = iter.next() {
-                    input = parsers
-                        .get(&parser_idx)
-                        .and_then(|p| p.parse(parsers, input))?;
+                let parser_idx = a[0];
+                let p = parsers.get(&parser_idx).unwrap();
+                let remaining = p.parse(parsers, input);
+
+                let subsequent_parsers = &a[1..];
+                if subsequent_parsers.is_empty() {
+                    return remaining;
                 }
-                Some(input)
+
+                let mut subsequent_remaining = Vec::new();
+                let subsequent_parser = Parser::Seq(subsequent_parsers.to_vec());
+                for input in remaining {
+                    subsequent_remaining.extend(subsequent_parser.parse(parsers, input));
+                }
+                subsequent_remaining
             }
             Parser::Alt(a, b) => {
                 let parser_a = Parser::Seq(a.clone());
-                match parser_a.parse(parsers, input) {
-                    Some(input) => Some(input),
-                    None => {
-                        let parser_b = Parser::Seq(b.clone());
-                        parser_b.parse(parsers, input)
-                    }
-                }
+                let parser_b = Parser::Seq(b.clone());
+                let mut remaining = parser_a.parse(parsers, input);
+                remaining.extend(parser_b.parse(parsers, input));
+                remaining
             }
         }
     }
@@ -79,7 +83,7 @@ fn solve_d19_p1(input: &str) -> usize {
     let rule0 = parsers.get(&0).unwrap();
     pattern_input
         .split('\n')
-        .filter(|pattern| rule0.parse(&parsers, pattern) == Some(""))
+        .filter(|pattern| rule0.parse(&parsers, pattern).iter().any(|x| x.is_empty()))
         .count()
 }
 
@@ -98,6 +102,6 @@ fn solve_d19_p2(input: &str) -> usize {
 
     pattern_input
         .split('\n')
-        .filter(|pattern| rule0.parse(&parsers, pattern) == Some(""))
+        .filter(|pattern| rule0.parse(&parsers, pattern).iter().any(|x| x.is_empty()))
         .count()
 }
