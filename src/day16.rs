@@ -108,6 +108,7 @@ fn solve_d16_p2(input: &str) -> usize {
         .product()
 }
 
+#[cfg(all(target_arch = "x86_64", target_feature = "avx2"))]
 #[aoc(day16, part2, avx2)]
 fn solve_d16_p2_avx2(input: &str) -> usize {
     unsafe { avx2::solve_d16_p2(input) }
